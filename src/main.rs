@@ -51,37 +51,40 @@ fn main() {
     world.state[4][21] = State::Alive;
 
     loop {
-        display_world(&world);
-        world = next_world(world);
+        world.display();
+        world.update();
         thread::sleep(time::Duration::from_millis(50));
     }
 }
 
-fn display_world(world: &World) {
-    for row in world.state.iter() {
-        for state in row.iter() {
-            match state {
-                State::Dead => print!("⠀"),
-                State::Alive => print!("█"),
+
+impl World {
+    fn update(&mut self) {
+        let mut new_state = self.state;
+        for (y_pos, column) in self.state.iter().enumerate() {
+            for (x_pos, state) in column.iter().enumerate() {
+                new_state[y_pos][x_pos] =
+                    match (state, n_alive(&self, get_neighbors(y_pos, x_pos))) {
+                        (State::Alive, 2 | 3) => State::Alive,
+                        (State::Dead, 3) => State::Alive,
+                        _ => State::Dead,
+                    }
             }
         }
-        println!();
+        self.state = new_state;
     }
-}
 
-fn next_world(world: World) -> World {
-    let mut new_world = world;
-    for (y_pos, column) in world.state.iter().enumerate() {
-        for (x_pos, state) in column.iter().enumerate() {
-            new_world.state[y_pos][x_pos] =
-                match (state, n_alive(&world, get_neighbors(y_pos, x_pos))) {
-                    (State::Alive, 2 | 3) => State::Alive,
-                    (State::Dead, 3) => State::Alive,
-                    _ => State::Dead,
+    fn display(&self) {
+        for row in self.state.iter() {
+            for state in row.iter() {
+                match state {
+                    State::Dead => print!("⠀"),
+                    State::Alive => print!("█"),
                 }
+            }
+            println!();
         }
     }
-    new_world
 }
 
 fn get_neighbors(y_pos: usize, x_pos: usize) -> Vec<Coord> {
