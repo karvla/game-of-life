@@ -1,4 +1,8 @@
-use std::{time, thread, env};
+use std::fs::File;
+use std::io;
+use std::io::ErrorKind;
+use std::io::Read;
+use std::{thread, time};
 
 const HEIGHT: usize = 50;
 const WIDTH: usize = 50;
@@ -24,31 +28,7 @@ fn main() {
         state: [[State::Dead; WIDTH]; HEIGHT],
     };
 
-    // Blinker
-    world.state[9][6] = State::Alive;
-    world.state[9][7] = State::Alive;
-    world.state[9][8] = State::Alive;
-
-    // Spaceship
-    world.state[3][8] = State::Alive;
-    world.state[4][8] = State::Alive;
-    world.state[5][8] = State::Alive;
-    world.state[5][7] = State::Alive;
-    world.state[4][6] = State::Alive;
-
-    // Spaceship
-    world.state[3][0] = State::Alive;
-    world.state[4][0] = State::Alive;
-    world.state[5][0] = State::Alive;
-    world.state[5][1] = State::Alive;
-    world.state[4][2] = State::Alive;
-
-    // Spaceship
-    world.state[3][19] = State::Alive;
-    world.state[4][19] = State::Alive;
-    world.state[5][19] = State::Alive;
-    world.state[5][20] = State::Alive;
-    world.state[4][21] = State::Alive;
+    world.set_state("map.txt");
 
     loop {
         world.display();
@@ -57,18 +37,51 @@ fn main() {
     }
 }
 
+fn read_string(filename: &str) -> Result<String, io::Error> {
+    let mut string = String::new();
+
+    File::open(filename)?.read_to_string(&mut string)?;
+
+    Ok(string)
+}
 
 impl World {
+    fn set_state(&mut self, filename: &str) {
+        let string = match read_string(filename) {
+            Ok(s) => s,
+            Err(_) => "".to_string(),
+        };
+
+        let mut x = 0;
+        let mut y = 0;
+        for c in string.chars() {
+            match c {
+                '\n' => {
+                    y += 1;
+                    x = 0;
+                    continue;
+                }
+                ' ' => self.state[y][x] = State::Dead,
+                _ => self.state[y][x] = State::Alive,
+            }
+            x += 1;
+
+            if (x >= HEIGHT || y >= WIDTH) {
+                break;
+            }
+        }
+    }
+
     fn update(&mut self) {
         let mut new_state = self.state;
         for (y_pos, column) in self.state.iter().enumerate() {
             for (x_pos, state) in column.iter().enumerate() {
-                new_state[y_pos][x_pos] =
-                    match (state, n_alive(&self, get_neighbors(y_pos, x_pos))) {
-                        (State::Alive, 2 | 3) => State::Alive,
-                        (State::Dead, 3) => State::Alive,
-                        _ => State::Dead,
-                    }
+                new_state[y_pos][x_pos] = match (state, n_alive(&self, get_neighbors(y_pos, x_pos)))
+                {
+                    (State::Alive, 2 | 3) => State::Alive,
+                    (State::Dead, 3) => State::Alive,
+                    _ => State::Dead,
+                }
             }
         }
         self.state = new_state;
@@ -100,8 +113,8 @@ fn get_neighbors(y_pos: usize, x_pos: usize) -> Vec<Coord> {
         (-1, 1),
     ] {
         let neighbor = Coord {
-            y: (y_pos as i32) + y,
-            x: (x_pos as i32) + x,
+            y: ((y_pos as i32) + y) % HEIGHT as i32,
+            x: ((x_pos as i32) + x) % WIDTH as i32,
         };
 
         if is_inside(&neighbor) {
