@@ -1,5 +1,5 @@
 [package]
-name = "ownership"
+name = "game_of_life"
 version = "0.1.0"
 edition = "2018"
 

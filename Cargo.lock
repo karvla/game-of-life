@@ -9,7 +9,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a2a5ac8f984bfcf3a823267e5fde638acc3325f6496633a5da6bb6eb2171e103"
 
 [[package]]
-name = "ownership"
+name = "game_of_life"
 version = "0.1.0"
 dependencies = [
  "terminal_size",
