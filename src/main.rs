@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io;
-use std::io::ErrorKind;
 use std::io::Read;
 use std::{thread, time};
 
@@ -13,8 +12,8 @@ struct World {
 }
 
 struct Coord {
-    x: i32,
-    y: i32,
+    x: usize,
+    y: usize,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
@@ -66,7 +65,7 @@ impl World {
             }
             x += 1;
 
-            if (x >= HEIGHT || y >= WIDTH) {
+            if x >= HEIGHT || y >= WIDTH {
                 break;
             }
         }
@@ -113,15 +112,15 @@ fn get_neighbors(y_pos: usize, x_pos: usize) -> Vec<Coord> {
         (-1, 1),
     ] {
         let neighbor = Coord {
-            y: ((y_pos as i32) + y).rem_euclid(HEIGHT as i32),
-            x: ((x_pos as i32) + x).rem_euclid(WIDTH as i32),
+            y: ((y_pos as i32) + y).rem_euclid(HEIGHT as i32) as usize,
+            x: ((x_pos as i32) + x).rem_euclid(WIDTH as i32) as usize,
         };
         neighbors.push(neighbor);
     }
     neighbors
 }
 
-fn n_alive(world: &World, coords: Vec<Coord>) -> i32 {
+fn n_alive(world: &World, coords: Vec<Coord>) -> usize {
     let mut n_alive = 0;
     for coord in coords {
         if world.state[coord.y as usize][coord.x as usize] == State::Alive {
