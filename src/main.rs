@@ -113,19 +113,12 @@ fn get_neighbors(y_pos: usize, x_pos: usize) -> Vec<Coord> {
         (-1, 1),
     ] {
         let neighbor = Coord {
-            y: ((y_pos as i32) + y) % HEIGHT as i32,
-            x: ((x_pos as i32) + x) % WIDTH as i32,
+            y: ((y_pos as i32) + y).rem_euclid(HEIGHT as i32),
+            x: ((x_pos as i32) + x).rem_euclid(WIDTH as i32),
         };
-
-        if is_inside(&neighbor) {
-            neighbors.push(neighbor);
-        }
+        neighbors.push(neighbor);
     }
     neighbors
-}
-
-fn is_inside(coord: &Coord) -> bool {
-    coord.y >= 0 && (coord.y as usize) < HEIGHT && coord.x >= 0 && (coord.x as usize) < WIDTH
 }
 
 fn n_alive(world: &World, coords: Vec<Coord>) -> i32 {
