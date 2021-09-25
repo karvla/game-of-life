@@ -2,9 +2,11 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 use std::{thread, time};
+use terminal_size::terminal_size;
 
-const HEIGHT: usize = 50;
-const WIDTH: usize = 50;
+
+const HEIGHT: usize = 500;
+const WIDTH: usize = 500;
 
 #[derive(Copy, Clone)]
 struct World {
@@ -87,8 +89,20 @@ impl World {
     }
 
     fn display(&self) {
-        for row in self.state.iter() {
-            for state in row.iter() {
+        let (width, height) = match terminal_size() {
+            Some((w, h)) => (w.0 as usize, h.0 as usize),
+            None => (80, 50),
+        };
+
+        for (y, row) in self.state.iter().enumerate() {
+            if y >= height {
+                println!();
+                break;
+            }
+            for (x, state) in row.iter().enumerate() {
+                if x >= width {
+                    break;
+                }
                 match state {
                     State::Dead => print!("⠀"),
                     State::Alive => print!("█"),
